@@ -11,7 +11,7 @@ instruction *code;
 int cIndex;
 symbol *table;
 int tIndex;
-int level;
+int global_level;
 
 void emit(int opname, int level, int mvalue);
 void addToSymbolTable(int k, char n[], int v, int l, int a, int m);
@@ -21,19 +21,35 @@ int findsymbol(char name[], int kind);
 void printparseerror(int err_code);
 void printsymboltable();
 void printassemblycode();
+void block(lexeme *list, int lindex);
+void CONST_DECLARATION(list, int lindex);
+void VAR_DECLARATION();
+void PROCEDURE_DECLARATION();
 
 instruction *parse(lexeme *list, int printTable, int printCode)
 {
+
 	code = malloc(sizeof(instruction) * MAX_CODE_LENGTH);
 	table = malloc(sizeof(symbol) * MAX_SYMBOL_COUNT);
 	tIndex = 0;
 	cIndex = 0;
-	
+	int lindex = 0;
+	// Program
+	{
+		emit(7,-1,0);
+		addToSymbolTable(3,"main",0,0,0,0);
+		global_level = -1;
+		block(list,lindex);
+		emit(9,0,0);
+
+
+	}
+
 	if (printTable)
 		printsymboltable();
 	if (printCode)
 		printassemblycode();
-	
+
 	code[cIndex].opcode = -1;
 	return code;
 }
@@ -174,7 +190,7 @@ void printparseerror(int err_code)
 			printf("Implementation Error: unrecognized error code\n");
 			break;
 	}
-	
+
 	free(code);
 	free(table);
 }
@@ -186,8 +202,8 @@ void printsymboltable()
 	printf("Kind | Name        | Value | Level | Address | Mark\n");
 	printf("---------------------------------------------------\n");
 	for (i = 0; i < tIndex; i++)
-		printf("%4d | %11s | %5d | %5d | %5d | %5d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark); 
-	
+		printf("%4d | %11s | %5d | %5d | %5d | %5d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
+
 	free(table);
 	table = NULL;
 }
@@ -292,4 +308,26 @@ void printassemblycode()
 	}
 	if (table != NULL)
 		free(table);
+}
+void block(lexeme *list)
+{
+	global_level++;
+	CONST_DECLARATION(list);
+	int x;
+	x = VAR_DECLARATION();
+	PROCEDURE_DECLARATION();
+	
+}
+void CONST_DECLARATION(lexeme *list,int lindex)
+{
+	if(list[lindex] == )
+}
+void VAR_DECLARATION()
+{
+	printf("VAR-DECLARATION");
+	return 2;
+}
+void PROCEDURE_DECLARATION()
+{
+	printf("PROCEDURE-DECLARATION");
 }
