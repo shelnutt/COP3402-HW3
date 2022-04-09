@@ -336,7 +336,7 @@ void CONST_DECLARATION(lexeme *list1,int lindex1)
 			do {
 				// if it is a identifier
 				if (list1[lindex1].type == identsym)
-					if (list1[lindex1+1].type == eqlsym)
+					if (list1[lindex1+1].type == assignsym)
 						if (list1[lindex1+2].type == numbersym)
 						{
 							printf("const\n");
@@ -362,7 +362,7 @@ int VAR_DECLARATION(lexeme *list1,int lindex1)
 				retval++;
 			}
 		} while(list1[lindex1+1].type == commasym);
-		}
+	}
 	return retval;
 }
 void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
