@@ -336,14 +336,31 @@ void CONST_DECLARATION(lexeme *list1,int lindex1)
 			do {
 				// if it is a identifier
 				if (list1[lindex1].type == identsym)
+				{
 					if (list1[lindex1+1].type == assignsym)
+					{
 						if (list1[lindex1+2].type == numbersym)
 						{
-							printf("const\n");
-							addToSymbolTable(1,list1[lindex1].name,list1[lindex1+2].type,level,0,0);
+							addToSymbolTable(1,list1[lindex1].name,list1[lindex1+2].value,level,0,0);
 							lindex1 = lindex1 + 4;
 						}
+					}
+					}
 			} while(list1[lindex1+3].type == commasym);
+			if (list1[lindex1].type == identsym)
+			{
+				printf("identifer\n");
+				if (list1[lindex1+1].type == assignsym)
+				{
+					printf("eqlsym");
+					if (list1[lindex1+2].type == numbersym)
+					{
+						printf("const\n");
+						addToSymbolTable(1,list1[lindex1].name,list1[lindex1+2].value,level,0,0);
+						lindex1 = lindex1 + 4;
+					}
+				}
+				}
 		}
 }
 int VAR_DECLARATION(lexeme *list1,int lindex1)
@@ -357,11 +374,19 @@ int VAR_DECLARATION(lexeme *list1,int lindex1)
 			{
 				printf("var\n");
 				addToSymbolTable(2,list1[lindex1+1].name,0,level,num_of_variables+3,0);
-				num_of_variables++;
 				lindex1 = lindex1 + 2;
+				num_of_variables++;
 				retval++;
 			}
 		} while(list1[lindex1+1].type == commasym);
+		if(list1[lindex1].type == identsym)
+			{
+				printf("var\n");
+				addToSymbolTable(2,list1[lindex1+1].name,0,level,num_of_variables+3,0);
+				lindex1 = lindex1 + 2;
+				num_of_variables++;
+				retval++;
+			}
 	}
 	return retval;
 }
