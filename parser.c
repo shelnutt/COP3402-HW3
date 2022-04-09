@@ -332,11 +332,17 @@ void program(lexeme *list, int lindex)
 
 void block(lexeme *list,int lindex)
 {
-	level++;
-	CONST_DECLARATION(list,lindex);
-	int x;
-	x = VAR_DECLARATION(list,lindex);
-	PROCEDURE_DECLARATION(list,lindex);
+    level++;
+    CONST_DECLARATION(list,lindex);
+    int x;
+    x = VAR_DECLARATION(list,lindex);
+    PROCEDURE_DECLARATION(list,lindex);
+    table[tIndex-1].addr = cIndex-1;
+    emit(6,0,x + 3);
+
+
+    mark();
+    level--;
 
 }
 
