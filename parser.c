@@ -12,6 +12,7 @@ int cIndex;
 symbol *table;
 int tIndex;
 int level;
+int num_of_variables = 0;
 
 void emit(int opname, int level, int mvalue);
 void addToSymbolTable(int k, char n[], int v, int l, int a, int m);
@@ -36,7 +37,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 	cIndex = 0;
 	int lindex = 0;
 	// Program
-	{
+	/*{
 		emit(7,-1,0);
 		addToSymbolTable(3,"main",0,0,0,0);
 		level = -1;
@@ -44,7 +45,9 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 		emit(9,0,0);
 
 
-	}
+	}*/
+
+	program(list,lindex);
 
 	if (printTable)
 		printsymboltable();
@@ -346,56 +349,54 @@ void block(lexeme *list,int lindex)
 
 }
 
-void CONST_DECLARATION(lexeme *list,int lindex)
+void CONST_DECLARATION(lexeme *list1,int lindex1)
 {
-	char *ident = NULL;
-    if(list[lindex].type == constsym)
-        {
-            do {
-				lindex++;	
-                // if it is a identifier
-                if (list[lindex].type == identsym)
-                    if (list[lindex+1].type == assignsym)
-                        if (list[lindex+2].type == numbersym)
-                        {
-                            addToSymbolTable(1,list[lindex].name,list[lindex+2].type,level,0,0);
-                            lindex = lindex + 4;
-                        }
-            } while(list[lindex+3].type == commasym);
-			lindex++;
-        }
+	if(list1[lindex1].type == constsym)
+		{
+			lindex1++;
+			do {
+				// if it is a identifier
+				if (list1[lindex1].type == identsym)
+					if (list1[lindex1+1].type == eqlsym)
+						if (list1[lindex1+2].type == numbersym)
+						{
+							addToSymbolTable(1,list1[lindex1].name,list1[lindex1+2].type,level,0,0);
+							lindex1 = lindex1 + 4;
+						}
+			} while(list1[lindex1+3].type == commasym);
+		}
 }
 
-int VAR_DECLARATION(lexeme *list,int lindex)
+int VAR_DECLARATION(lexeme *list1,int lindex1)
 {
 	int retval = 0;
-	if (list[lindex].type == varsym)
+	if (list1[lindex1].type == varsym)
 	{
+		lindex1++;
 		do {
-			if(list[lindex+1].type == identsym)
+			if(list1[lindex1].type == identsym)
 			{
-				addToSymbolTable(2,list[lindex+1].name,0,level,retval+2,0);
-				lindex = lindex + 3;
+				addToSymbolTable(2,list1[lindex1+1].name,0,level,num_of_variables+3,0);
+				num_of_variables++;
+				lindex1 = lindex1 + 2;
 				retval++;
 			}
-		} while(list[lindex+2].type == commasym);
-		lindex++;
-	}
+		} while(list1[lindex1+1].type == commasym);
+		}
 	return retval;
 }
 
-void PROCEDURE_DECLARATION(lexeme *list,int lindex)
+void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 {
-		while(list[lindex].type == procsym)
+		while(list1[lindex1].type == procsym)
 		{
-			if(list[lindex+1].type == identsym)
-				if(list[lindex+2].type == semicolonsym)
+			if(list1[lindex1+1].type == identsym)
+				if(list1[lindex1+2].type == semicolonsym)
 				{
-					addToSymbolTable(3,list[lindex+1].name,0,level,0,0);
-					block(list,lindex);
-					emit(2,level,0);
+					addToSymbolTable(3,list1[lindex1+1].name,0,level,0,0);
+					block(list1,lindex1);
+					emit(2,0,0);
 				}
-				lindex++;
+			lindex1 = lindex1 + 1;
 		}
-
 }
