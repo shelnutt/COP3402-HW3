@@ -348,19 +348,21 @@ void block(lexeme *list,int lindex)
 
 void CONST_DECLARATION(lexeme *list,int lindex)
 {
+	char *ident = NULL;
     if(list[lindex].type == constsym)
         {
-            lindex++;
             do {
+				lindex++;	
                 // if it is a identifier
                 if (list[lindex].type == identsym)
-                    if (list[lindex+1].type == eqlsym)
+                    if (list[lindex+1].type == assignsym)
                         if (list[lindex+2].type == numbersym)
                         {
                             addToSymbolTable(1,list[lindex].name,list[lindex+2].type,level,0,0);
                             lindex = lindex + 4;
                         }
             } while(list[lindex+3].type == commasym);
+			lindex++;
         }
 }
 
@@ -372,11 +374,12 @@ int VAR_DECLARATION(lexeme *list,int lindex)
 		do {
 			if(list[lindex+1].type == identsym)
 			{
-				addToSymbolTable(2,list[lindex+1].name,0,level,0,0);
+				addToSymbolTable(2,list[lindex+1].name,0,level,retval+2,0);
 				lindex = lindex + 3;
 				retval++;
 			}
 		} while(list[lindex+2].type == commasym);
+		lindex++;
 	}
 	return retval;
 }
@@ -390,8 +393,9 @@ void PROCEDURE_DECLARATION(lexeme *list,int lindex)
 				{
 					addToSymbolTable(3,list[lindex+1].name,0,level,0,0);
 					block(list,lindex);
-					emit(2,0,0);
+					emit(2,level,0);
 				}
+				lindex++;
 		}
 
 }
