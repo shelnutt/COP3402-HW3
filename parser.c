@@ -337,7 +337,7 @@ void block(lexeme *list,int lindex)
     int x;
     x = VAR_DECLARATION(list,lindex);
     PROCEDURE_DECLARATION(list,lindex);
-    table[tIndex-1].addr = cIndex-1;
+    table[tIndex-1].addr = cIndex*3;
     emit(6,0,x + 3);
 
 
