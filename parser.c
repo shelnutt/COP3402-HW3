@@ -11,7 +11,7 @@ instruction *code;
 int cIndex;
 symbol *table;
 int tIndex;
-int global_level;
+int level;
 
 void emit(int opname, int level, int mvalue);
 void addToSymbolTable(int k, char n[], int v, int l, int a, int m);
@@ -21,9 +21,10 @@ int findsymbol(char name[], int kind);
 void printparseerror(int err_code);
 void printsymboltable();
 void printassemblycode();
+void program(lexeme *list, int lindex);
 void block(lexeme *list, int lindex);
-void CONST_DECLARATION(list, int lindex);
-void VAR_DECLARATION();
+void CONST_DECLARATION(lexeme *list, int lindex);
+int VAR_DECLARATION(lexeme *list,int lindex);
 void PROCEDURE_DECLARATION();
 
 instruction *parse(lexeme *list, int printTable, int printCode)
@@ -38,7 +39,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 	{
 		emit(7,-1,0);
 		addToSymbolTable(3,"main",0,0,0,0);
-		global_level = -1;
+		level = -1;
 		block(list,lindex);
 		emit(9,0,0);
 
@@ -309,25 +310,78 @@ void printassemblycode()
 	if (table != NULL)
 		free(table);
 }
-void block(lexeme *list)
+
+void program(lexeme *list, int lindex)
 {
-	global_level++;
-	CONST_DECLARATION(list);
+	emit(7,0,0);
+	addToSymbolTable(3,"main",0,0,0,0);
+	level = -1;
+
+	block(list, lindex);
+
+	emit(9,0,3);
+
+	for(int i = 0;i<cIndex;i++)
+	{
+		if(code[i].opcode == 5)
+			code[i].m = table[code[i].m].addr;
+	}
+	code[0].m = table[0].addr;
+
+}
+
+void block(lexeme *list,int lindex)
+{
+	level++;
+	CONST_DECLARATION(list,lindex);
 	int x;
-	x = VAR_DECLARATION();
+	x = VAR_DECLARATION(list,lindex);
 	PROCEDURE_DECLARATION();
-	
+
 }
 void CONST_DECLARATION(lexeme *list,int lindex)
 {
-	if(list[lindex] == )
+	if(list[lindex].type == constsym)
+		{
+			do {
+				// if it is a identifier
+				if (list[lindex+1].type == identsym)
+					if (list[lindex+2].type == eqlsym)
+						if (list[lindex+3].type == numbersym)
+						{
+							addToSymbolTable(1,list[lindex+1].name,list[lindex+3].type,level,0,0);
+							lindex = lindex + 5;
+						}
+			} while(list[lindex+4].type == commasym);
+		}
 }
-void VAR_DECLARATION()
+int VAR_DECLARATION(lexeme *list,int lindex)
 {
-	printf("VAR-DECLARATION");
-	return 2;
+	int retval = 0;
+	if (list[lindex].type == varsym)
+	{
+		do {
+			if(list[lindex+1].type == identsym)
+			{
+				addToSymbolTable(2,list[lindex+1].name,0,level,0,0);
+				lindex = lindex + 3;
+				retval++;
+			}
+		} while(list[lindex+2].type == commasym);
+	}
+	return retval;
 }
-void PROCEDURE_DECLARATION()
+void PROCEDURE_DECLARATION(lexeme *list,int lindex)
 {
-	printf("PROCEDURE-DECLARATION");
+		while(list[lindex].type == procsym)
+		{
+			if(list[lindex+1].type == identsym)
+				if(list[lindex+2].type == semicolonsym)
+				{
+					addToSymbolTable(3,list[lindex+1].name,0,level,0,0);
+					block(list,lindex);
+					emit(2,0,0);
+				}
+		}
+
 }
