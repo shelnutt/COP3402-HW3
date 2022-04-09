@@ -1,2 +1,3 @@
-const test := 2;
+const a := 3;
 var x;
+procedure B;
