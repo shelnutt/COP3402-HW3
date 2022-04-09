@@ -336,7 +336,7 @@ void block(lexeme *list,int lindex)
 	CONST_DECLARATION(list,lindex);
 	int x;
 	x = VAR_DECLARATION(list,lindex);
-	PROCEDURE_DECLARATION();
+	PROCEDURE_DECLARATION(list,lindex);
 
 }
 void CONST_DECLARATION(lexeme *list,int lindex)
