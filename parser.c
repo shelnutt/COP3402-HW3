@@ -365,28 +365,30 @@ void CONST_DECLARATION(lexeme *list1,int lindex1)
 }
 int VAR_DECLARATION(lexeme *list1,int lindex1)
 {
+	printf("var\n");
 	int retval = 0;
 	if (list1[lindex1].type == varsym)
 	{
 		lindex1++;
+		printf("varsymt\n");
 		do {
 			if(list1[lindex1].type == identsym)
 			{
-				printf("var\n");
+				printf("identsym\n");
 				addToSymbolTable(2,list1[lindex1+1].name,0,level,num_of_variables+3,0);
-				lindex1 = lindex1 + 2;
 				num_of_variables++;
+				lindex1 = lindex1 + 2;
 				retval++;
 			}
 		} while(list1[lindex1+1].type == commasym);
 		if(list1[lindex1].type == identsym)
-			{
-				printf("var\n");
-				addToSymbolTable(2,list1[lindex1+1].name,0,level,num_of_variables+3,0);
-				lindex1 = lindex1 + 2;
-				num_of_variables++;
-				retval++;
-			}
+		{
+			printf("identsym2\n");
+			addToSymbolTable(2,list1[lindex1+1].name,0,level,num_of_variables+3,0);
+			num_of_variables++;
+			lindex1 = lindex1 + 2;
+			retval++;
+		}
 	}
 	return retval;
 }
