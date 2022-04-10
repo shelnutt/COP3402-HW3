@@ -398,7 +398,7 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 		block(list1,lindex);
 
 		//lindex++;
-		//emit(2,0,0);
+		emit(2,0,0);
 	}
 
 		/*while(list1[lindex].type == procsym)
@@ -452,7 +452,7 @@ void STATEMENT(lexeme *list1)
 		} while (list1[lindex].type==semicolonsym);
 
 		lindex++;
-		return;
+		//return;
 	}
 
 	else if(list1[lindex].type == ifsym)
@@ -476,7 +476,7 @@ void STATEMENT(lexeme *list1)
 		else
 			code[jpcIdx].m = cIndex;
 
-		return;
+		//return;
 	}
 	else if(list1[lindex].type == whilesym)
 	{
@@ -493,7 +493,7 @@ void STATEMENT(lexeme *list1)
 		code[jpcIdx].m = cIndex;
 
 		lindex++;
-		return;
+		//return;
 	}
 	else if(list1[lindex].type == readsym)
 	{
@@ -504,7 +504,7 @@ void STATEMENT(lexeme *list1)
 		emit(4,level-table[symIdx].level,table[symIdx].addr);
 
 		lindex++;
-		return;
+		//return;
 	}
 	else if(list1[lindex].type == writesym)
 	{
@@ -512,7 +512,7 @@ void STATEMENT(lexeme *list1)
 		expression(list1);
 
 		emit(9,0,1);
-		return;
+		//return;
 	}
 	else if(list1[lindex].type == callsym)
 	{
