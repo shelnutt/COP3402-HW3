@@ -59,7 +59,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 			if(code[i].opcode == 5)
 				code[i].m = table[code[i].m].addr;
 		}
-    	code[0].m = table[0].addr;
+    	//code[0].m = table[0].addr;
 
 	}
 
