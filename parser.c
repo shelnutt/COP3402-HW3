@@ -54,8 +54,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 		level = -1;
 		block(list,lindex);
 		emit(9,0,3);
-    //code[0].m = 1;
-
+    	code[0].m = table[0].addr;
 
 	}
 
