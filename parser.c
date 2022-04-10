@@ -12,7 +12,7 @@ int cIndex;
 symbol *table;
 int tIndex;
 int level;
-int num_of_variables = 0;
+int *num_of_variables;
 int lindex = 0;
 int procedure_table_index;
 int procedure_code_index;
@@ -29,17 +29,22 @@ void block(lexeme *list1, int lindex1);
 void CONST_DECLARATION(lexeme *list1, int lindex1);
 int VAR_DECLARATION(lexeme *list1,int lindex1);
 void PROCEDURE_DECLARATION(lexeme *list1,int lindex1);
-void statement(lexeme *list);
-void condition(lexeme *list);
-void expression(lexeme *list);
-void term(lexeme *list);
-void factor(lexeme *list);
+void STATEMENT(lexeme *list1);
+void expression(lexeme *list1);
+void STATEMENT(lexeme *list1);
+void condition(lexeme *list1);
+void term(lexeme *list1);
+void factor(lexeme *list1);
+
+
+
 
 instruction *parse(lexeme *list, int printTable, int printCode)
 {
 
 	code = malloc(sizeof(instruction) * MAX_CODE_LENGTH);
 	table = malloc(sizeof(symbol) * MAX_SYMBOL_COUNT);
+	num_of_variables = calloc(50,sizeof(int));
 	tIndex = 0;
 	cIndex = 0;
 	// Program
@@ -87,6 +92,7 @@ void addToSymbolTable(int k, char n[], int v, int l, int a, int m)
 // mark the symbols belonging to the current procedure, should be called at the end of block
 void mark()
 {
+	printf("NOW%d\n",lindex);
 	int i;
 	for (i = tIndex - 1; i >= 0; i--)
 	{
@@ -119,6 +125,7 @@ int findsymbol(char name[], int kind)
 	int max_lvl = -1;
 	for (i = 0; i < tIndex; i++)
 	{
+		//printf("%s\n%d\n%d\n",table[i].name,table[i].kind,table[i].mark);
 		if (table[i].mark == 0 && table[i].kind == kind && strcmp(name, table[i].name) == 0)
 		{
 			if (max_idx == -1 || table[i].level > max_lvl)
@@ -213,8 +220,8 @@ void printsymboltable()
 	for (i = 0; i < tIndex; i++)
 		printf("%4d | %11s | %5d | %5d | %5d | %5d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
 
-	free(table);
-	table = NULL;
+	//free(table);
+	//table = NULL;
 }
 
 void printassemblycode()
@@ -328,6 +335,7 @@ void block(lexeme *list1,int lindex1)
 	// printf("%d\n",procedure_index);
 	table[procedure_table_index].addr = procedure_code_index;
 	emit(6,0,x + 3);
+	STATEMENT(list1);
 
 
 	mark();
@@ -365,8 +373,8 @@ int VAR_DECLARATION(lexeme *list1,int lindex1)
 		do {
 			if(list1[lindex].type == identsym)
 			{
-				addToSymbolTable(2,list1[lindex].name,0,level,num_of_variables+3,0);
-				num_of_variables++;
+				addToSymbolTable(2,list1[lindex].name,0,level,num_of_variables[level]+3,0);
+				num_of_variables[level]++;
 				lindex = lindex + 2;
 				retval++;
 			}
@@ -383,6 +391,7 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 			if(list1[lindex].type == identsym)
 			{
 				lindex = lindex + 1;
+			
 				if(list1[lindex].type == semicolonsym)
 				{
 					addToSymbolTable(3,list1[lindex-1].name,0,level,0,0);
@@ -390,6 +399,7 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 					procedure_code_index = cIndex;
 					lindex++;
 					block(list1,lindex1);
+					//emit(2,level,0);
 					//code[cIndex].opcode = 2;
 					//code[cIndex].l = 0;
 					//code[cIndex].m = 0;
@@ -399,45 +409,52 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 			}
 		}
 }
-
-void statement(lexeme *list)
+void STATEMENT(lexeme *list1)
 {
-	if(list[lindex].type == identsym)
+	//printf("statement\n");
+	// printf("%d",lindex);
+	if(list1[lindex].type == identsym)
 	{
-		int symIdx = findsymbol(list[lindex].name,2);
-
-		lindex = lindex+2;
-		expression(list);
-		emit(4,level-table[symIdx].level,table[symIdx].addr);
-		return;
+		printsymboltable();
+		int symIdx = findsymbol(list1[lindex].name,2);
+		printf("level=%d\n",level);
+		lindex++;
+		if (list1[lindex].type == assignsym)
+		{
+			lindex++;
+			expression(list1);
+			emit(4,level-table[symIdx].level,table[symIdx].addr);
+		}
 	}
-	if(list[lindex].type == beginsym)
+
+	else if(list1[lindex].type == beginsym)
 	{
 		do
 		{
 			lindex++;
-			statement(list);
-		} while (list[lindex].type==semicolonsym);
-		
+			STATEMENT(list1);
+		} while (list1[lindex].type==semicolonsym);
+
 		lindex++;
 		return;
 	}
-	if(list[lindex].type == ifsym)
+
+	else if(list1[lindex].type == ifsym)
 	{
 		lindex++;
-		condition(list);
+		condition(list1);
 		int jpcIdx = cIndex;
-		emit(8,level,1);
+		emit(8,0,1);
 
 		lindex++;
-		statement(list);
-		if(list[lindex].type == elsesym)
+		STATEMENT(list1);
+		if(list1[lindex].type == elsesym)
 		{
 			int jmpIdx = cIndex;
-			emit(7,level,1);
+			emit(7,0,1);
 			code[jpcIdx].m = cIndex;
 			lindex++;
-			statement(list);
+			STATEMENT(list1);
 			code[jmpIdx].m = cIndex;
 		}
 		else
@@ -445,186 +462,184 @@ void statement(lexeme *list)
 
 		return;
 	}
-	if(list[lindex].type == whilesym)
+	else if(list1[lindex].type == whilesym)
 	{
 		lindex++;
 		int loopIdx = cIndex;
 
-		condition(list);
+		condition(list1);
 
 		int jpcIdx = cIndex;
 
-		emit(8,level,1);
-		statement(list);
-		emit(7,level,loopIdx);
+		emit(8,0,1);
+		STATEMENT(list1);
+		emit(7,0,loopIdx);
 		code[jpcIdx].m = cIndex;
 
 		lindex++;
 		return;
 	}
-	if(list[lindex].type == readsym)
+	else if(list1[lindex].type == readsym)
 	{
 		lindex++;
-		int symIdx = findsymbol(list[lindex].name,2);
+		int symIdx = findsymbol(list1[lindex].name,2);
 
-		emit(9,level,2);
+		emit(9,0,2);
 		emit(4,level-table[symIdx].level,table[symIdx].addr);
 
 		lindex++;
 		return;
 	}
-	if(list[lindex].type == writesym)
+	else if(list1[lindex].type == writesym)
 	{
 		lindex++;
-		expression(list);
+		expression(list1);
 
-		emit(9,level,1);
+		emit(9,0,1);
 		return;
 	}
-	if(list[lindex].type == callsym)
+	else if(list1[lindex].type == callsym)
 	{
-		int symIdx = findsymbol(list[lindex].name,3);
+		int symIdx = findsymbol(list1[lindex].name,3);
 
 		lindex++;
 		emit(5,level-table[symIdx].level,symIdx);
 	}
 }
 
-void condition(lexeme *list)
+void condition(lexeme *list1)
 {
-	expression(list);
+	expression(list1);
 
-	if(list[lindex].type == eqlsym)
+	if(list1[lindex].type == eqlsym)
 	{
 		lindex++;
-		expression(list);
-		emit(2,level,6);
+		expression(list1);
+		emit(2,0,6);
 	}
-	else if(list[lindex].type == neqsym)
+	else if(list1[lindex].type == neqsym)
 	{
 		lindex++;
-		expression(list);
-		emit(2,level,7);
+		expression(list1);
+		emit(2,0,7);
 	}
-	else if(list[lindex].type == lsssym)
+	else if(list1[lindex].type == lsssym)
 	{
 		lindex++;
-		expression(list);
-		emit(2,level,8);
+		expression(list1);
+		emit(2,0,8);
 	}
-	else if(list[lindex].type == leqsym)
+	else if(list1[lindex].type == leqsym)
 	{
 		lindex++;
-		expression(list);
-		emit(2,level,9);
+		expression(list1);
+		emit(2,0,9);
 	}
-	else if(list[lindex].type ==  gtrsym)
+	else if(list1[lindex].type ==  gtrsym)
 	{
 		lindex++;
-		expression(list);
-		emit(2,level,10);
+		expression(list1);
+		emit(2,0,10);
 	}
-	else if(list[lindex].type == geqsym)
+	else if(list1[lindex].type == geqsym)
 	{
 		lindex++;
-		expression(list);
-		emit(2,level,11);
+		expression(list1);
+		emit(2,0,11);
 	}
 }
 
-void expression(lexeme *list)
+void expression(lexeme *list1)
 {
-	if(list[lindex].type == minussym)
+	if(list1[lindex].type == minussym)
 	{
 		lindex++;
-		term(list);
-		emit(2,level,1);
-		while (list[lindex].type == plussym || list[lindex].type == minussym)
+		term(list1);
+		emit(2,0,1);
+		while (list1[lindex].type == plussym || list1[lindex].type == minussym)
 		{
-			
-			if(list[lindex].type == plussym)
+
+			if(list1[lindex].type == plussym)
 			{
 				lindex++;
-				term(list);
-				emit(2,level,2);
+				term(list1);
+				emit(2,0,2);
 			}
 			else
 			{
 				lindex++;
-				term(list);
-				emit(2,level,3);
+				term(list1);
+				emit(2,0,3);
 			}
-		} 
-		
+		}
+
 	}
 	else
 	{
-		if(list[lindex].type == plussym)
-			lindex++;
-		term(list);
-		while(list[lindex].type == plussym || list[lindex].type == minussym)
+		if(list1[lindex].type == plussym)
+		lindex++;
+		term(list1);
+		while(list1[lindex].type == plussym || list1[lindex].type == minussym)
 		{
-			if(list[lindex].type == plussym)
+			if(list1[lindex].type == plussym)
 			{
 				lindex++;
-				term(list);
-				emit(2,level,2);
+				term(list1);
+				emit(2,0,2);
 			}
 			else
 			{
 				lindex++;
-				term(list);
-				emit(2,level,3);
+				term(list1);
+				emit(2,0,3);
 			}
 		}
-		
+
 	}
 }
 
-void term(lexeme *list)
+void term(lexeme *list1)
 {
-	factor(list);
-	while(list[lindex].type == multsym || list[lindex].type == divsym)
+	factor(list1);
+	while(list1[lindex].type == multsym || list1[lindex].type == divsym)
 	{
-		if(list[lindex].type == multsym)
+		if(list1[lindex].type == multsym)
 		{
 			lindex++;
-			factor(list);
-			emit(2,level,4);
+			factor(list1);
+			emit(2,0,4);
 		}
 		else
 		{
 			lindex++;
-			factor(list);
-			emit(2,level,5);
+			factor(list1);
+			emit(2,0,5);
 		}
 	}
 }
 
-void factor(lexeme *list)
+void factor(lexeme *list1)
 {
-	if(list[lindex].type == identsym)
+	if(list1[lindex].type == identsym)
 	{
-		int symIdx_var = findsymbol(list[lindex].name,2);
-		int symIdx_const = findsymbol(list[lindex].name,1);
+		int symIdx_var = findsymbol(list1[lindex].name,2);
+		int symIdx_const = findsymbol(list1[lindex].name,1);
 
-		if(symIdx_const == 0)
-			emit(1,level,table[symIdx_const].val);
-		else if(symIdx_var == 0 || (table[symIdx_var].level > table[symIdx_const].level))
+		if(symIdx_const == 0 || table[symIdx_var].level < table[symIdx_const].level)
+			emit(1,0,table[symIdx_const].val);
+		else 
 			emit(3,level-table[symIdx_var].level,table[symIdx_var].addr);
-		else
-			emit(1,level,table[symIdx_const].val);	
 		lindex++;
 	}
-	else if(list[lindex].type == numbersym)
+	else if(list1[lindex].type == numbersym)
 	{
-		emit(1,level,list[lindex].value);
+		emit(1,0,list1[lindex].value);
 		lindex++;
 	}
-	else if(list[lindex].type == lparensym)
+	else if(list1[lindex].type == lparensym)
 	{
 		lindex++;
-		expression(list);
+		expression(list1);
 		lindex++;
 	}
 
