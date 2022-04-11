@@ -95,7 +95,7 @@ void addToSymbolTable(int k, char n[], int v, int l, int a, int m)
 // mark the symbols belonging to the current procedure, should be called at the end of block
 void mark()
 {
-	printf("NOW%d\n",lindex);
+	//printf("NOW%d\n",lindex);
 	int i;
 	for (i = tIndex - 1; i >= 0; i--)
 	{
@@ -364,7 +364,7 @@ void CONST_DECLARATION(lexeme *list1,int lindex1)
 							lindex = lindex + 4;
 						}
 					}
-					}
+				}
 			} while(list1[lindex].type == identsym);
 		}
 
@@ -389,23 +389,28 @@ int VAR_DECLARATION(lexeme *list1,int lindex1)
 }
 void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 {
-	while(list1[lindex].type == procsym)
-	{
-		lindex = lindex + 1;
-		if(list1[lindex].type == identsym)
+
+		while(list1[lindex].type == procsym)
 		{
 			lindex = lindex + 1;
-			
-			if(list1[lindex].type == semicolonsym)
+			if(list1[lindex].type == identsym)
 			{
-				addToSymbolTable(3,list1[lindex-1].name,0,level,0,0);
-				lindex++;
-				block(list1,lindex);
-				//emit(2,0,0);
-				//lindex = lindex + 1;
+				lindex = lindex + 1;
+				if(list1[lindex].type == semicolonsym)
+				{
+					addToSymbolTable(3,list1[lindex-1].name,0,level,0,0);
+					lindex++;
+					block(list1,lindex);
+					lindex++;
+					if(list1[lindex].type == semicolonsym)
+					{
+						emit(2,0,0);
+						lindex++;
+					}
+					//emit(2,0,0);
+				}
 			}
 		}
-	}
 }
 void STATEMENT(lexeme *list1)
 {
@@ -415,7 +420,7 @@ void STATEMENT(lexeme *list1)
 	{
 		//printsymboltable();
 		int symIdx = findsymbol(list1[lindex].name,2);
-		printf("level=%d\n",level);
+		//printf("level=%d\n",level);
 		lindex++;
 		if (list1[lindex].type == assignsym)
 		{
