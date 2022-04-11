@@ -417,7 +417,7 @@ void STATEMENT(lexeme *list1)
 	// printf("%d",lindex);
 	if(list1[lindex].type == identsym)
 	{
-		printsymboltable();
+		//printsymboltable();
 		int symIdx = findsymbol(list1[lindex].name,2);
 		printf("level=%d\n",level);
 		lindex++;
