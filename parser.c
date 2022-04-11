@@ -332,6 +332,8 @@ void printassemblycode()
 void block(lexeme *list1,int lindex1)
 {
 	level++;
+	procedure_table_index = tIndex - 1;
+	procedure_code_index = cIndex;
 	CONST_DECLARATION(list1,lindex1);
 	int x;
 	x = VAR_DECLARATION(list1,lindex1);
@@ -392,8 +394,6 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 	{
 		lindex++;
 		addToSymbolTable(3,list1[lindex].name,0,level,0,0);
-		procedure_table_index = tIndex - 1;
-		procedure_code_index = cIndex;
 		lindex= lindex+2;
 		block(list1,lindex);
 
