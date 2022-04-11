@@ -52,19 +52,13 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 		addToSymbolTable(3,"main",0,0,0,0);
 		level = -1;
 		block(list,lindex);
+		emit(9,0,3);
 		for(int i =0;i<cIndex;i++)
 		{
 			if(code[i].opcode == 5)
 				code[i].m = table[code[i].m].addr;
 		}
     	code[0].m = table[0].addr;
-		emit(9,0,3);
-		/*for(int i =0;i<cIndex;i++)
-		{
-			if(code[i].opcode == 5)
-				code[i].m = table[code[i].m].addr;
-		}
-    	code[0].m = table[0].addr;*/
 
 	}
 
@@ -405,8 +399,6 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 			if(list1[lindex].type == semicolonsym)
 			{
 				addToSymbolTable(3,list1[lindex-1].name,0,level,0,0);
-				procedure_table_index = tIndex-1;
-				procedure_code_index = cIndex;
 				lindex++;
 				block(list1,lindex);
 				//emit(2,0,0);
