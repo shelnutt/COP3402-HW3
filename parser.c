@@ -31,7 +31,6 @@ int VAR_DECLARATION(lexeme *list1,int lindex1);
 void PROCEDURE_DECLARATION(lexeme *list1,int lindex1);
 void STATEMENT(lexeme *list1);
 void expression(lexeme *list1);
-void STATEMENT(lexeme *list1);
 void condition(lexeme *list1);
 void term(lexeme *list1);
 void factor(lexeme *list1);
@@ -53,13 +52,19 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 		addToSymbolTable(3,"main",0,0,0,0);
 		level = -1;
 		block(list,lindex);
-		emit(9,0,3);
 		for(int i =0;i<cIndex;i++)
 		{
 			if(code[i].opcode == 5)
 				code[i].m = table[code[i].m].addr;
 		}
     	code[0].m = table[0].addr;
+		emit(9,0,3);
+		/*for(int i =0;i<cIndex;i++)
+		{
+			if(code[i].opcode == 5)
+				code[i].m = table[code[i].m].addr;
+		}
+    	code[0].m = table[0].addr;*/
 
 	}
 
@@ -392,37 +397,27 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 {
 	while(list1[lindex].type == procsym)
 	{
-		lindex++;
-		addToSymbolTable(3,list1[lindex].name,0,level,0,0);
-		lindex= lindex+2;
-		block(list1,lindex);
-
-		//lindex++;
-		//emit(2,0,0);
-	}
-		/*while(list1[lindex].type == procsym)
+		lindex = lindex + 1;
+		if(list1[lindex].type == identsym)
 		{
 			lindex = lindex + 1;
-			if(list1[lindex].type == identsym)
-			{
-				lindex = lindex + 1;
 			
-				if(list1[lindex].type == semicolonsym)
-				{
-					addToSymbolTable(3,list1[lindex-1].name,0,level,0,0);
-					procedure_table_index = tIndex-1;
-					procedure_code_index = cIndex;
-					lindex++;
-					block(list1,lindex1);
-					//emit(2,0,0);
-					//code[cIndex].opcode = 2;
-					//code[cIndex].l = 0;
-					//code[cIndex].m = 0;
-					//cIndex++;
-					//lindex = lindex + 1;
-				}
+			if(list1[lindex].type == semicolonsym)
+			{
+				addToSymbolTable(3,list1[lindex-1].name,0,level,0,0);
+				procedure_table_index = tIndex-1;
+				procedure_code_index = cIndex;
+				lindex++;
+				block(list1,lindex);
+				//emit(2,0,0);
+				//code[cIndex].opcode = 2;
+				//code[cIndex].l = 0;
+				//code[cIndex].m = 0;
+				//cIndex++;
+				//lindex = lindex + 1;
 			}
-		}*/
+		}
+	}
 }
 void STATEMENT(lexeme *list1)
 {
