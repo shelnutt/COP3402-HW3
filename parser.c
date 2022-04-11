@@ -402,10 +402,6 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 				lindex++;
 				block(list1,lindex);
 				//emit(2,0,0);
-				//code[cIndex].opcode = 2;
-				//code[cIndex].l = 0;
-				//code[cIndex].m = 0;
-				//cIndex++;
 				//lindex = lindex + 1;
 			}
 		}
