@@ -390,7 +390,17 @@ int VAR_DECLARATION(lexeme *list1,int lindex1)
 }
 void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 {
-		while(list1[lindex].type == procsym)
+	while(list1[lindex].type == procsym)
+	{
+		lindex++;
+		addToSymbolTable(3,list1[lindex].name,0,level,0,0);
+		lindex= lindex+2;
+		block(list1,lindex);
+
+		//lindex++;
+		//emit(2,0,0);
+	}
+		/*while(list1[lindex].type == procsym)
 		{
 			lindex = lindex + 1;
 			if(list1[lindex].type == identsym)
@@ -412,7 +422,7 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 					//lindex = lindex + 1;
 				}
 			}
-		}
+		}*/
 }
 void STATEMENT(lexeme *list1)
 {
