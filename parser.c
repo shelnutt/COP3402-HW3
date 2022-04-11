@@ -398,7 +398,7 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 		block(list1,lindex);
 
 		//lindex++;
-		emit(2,0,0);
+		//emit(2,0,0);
 	}
 
 		/*while(list1[lindex].type == procsym)
