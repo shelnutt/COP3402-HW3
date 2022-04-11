@@ -59,7 +59,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 			if(code[i].opcode == 5)
 				code[i].m = table[code[i].m].addr;
 		}
-    	//code[0].m = table[0].addr;
+    	code[0].m = table[0].addr;
 
 	}
 
@@ -398,7 +398,7 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 		block(list1,lindex);
 
 		//lindex++;
-		//emit(2,0,0);
+		emit(2,0,0);
 	}
 
 		/*while(list1[lindex].type == procsym)
@@ -460,7 +460,7 @@ void STATEMENT(lexeme *list1)
 		lindex++;
 		condition(list1);
 		int jpcIdx = cIndex;
-		emit(8,0,1);
+		emit(8,0,0);
 
 		lindex++;
 		STATEMENT(list1);
@@ -485,9 +485,10 @@ void STATEMENT(lexeme *list1)
 
 		condition(list1);
 
+		lindex++;
 		int jpcIdx = cIndex;
 
-		emit(8,0,1);
+		emit(8,0,0);
 		STATEMENT(list1);
 		emit(7,0,loopIdx);
 		code[jpcIdx].m = cIndex;
