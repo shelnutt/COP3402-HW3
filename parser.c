@@ -48,7 +48,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 	cIndex = 0;
 	// Program
 	{
-		emit(7,0,1);
+		emit(7,0,0);
 		addToSymbolTable(3,"main",0,0,0,0);
 		level = -1;
 		block(list,lindex);
@@ -332,13 +332,14 @@ void block(lexeme *list1,int lindex1)
 {
 	level++;
 	procedure_table_index = tIndex - 1;
-	procedure_code_index = cIndex;
+	printf("%s\n",table[procedure_table_index].name);
 	CONST_DECLARATION(list1,lindex1);
 	int x;
 	x = VAR_DECLARATION(list1,lindex1);
 	PROCEDURE_DECLARATION(list1,lindex1);
 	// printf("%d\n",procedure_index);
-	table[procedure_table_index].addr = procedure_code_index;
+	printf("%d\n",cIndex);
+	table[procedure_table_index].addr = cIndex;
 	emit(6,0,x + 3);
 	STATEMENT(list1);
 
@@ -400,13 +401,10 @@ void PROCEDURE_DECLARATION(lexeme *list1,int lindex1)
 				{
 					addToSymbolTable(3,list1[lindex-1].name,0,level,0,0);
 					lindex++;
-					block(list1,lindex);
+					block(list1,lindex1);
 					lindex++;
-					if(list1[lindex].type == semicolonsym)
-					{
-						emit(2,0,0);
-						lindex++;
-					}
+					emit(2,0,0);
+					//break;
 				}
 			}
 		}
@@ -479,7 +477,6 @@ void STATEMENT(lexeme *list1)
 		emit(7,0,loopIdx);
 		code[jpcIdx].m = cIndex;
 
-		lindex++;
 		//return;
 	}
 	else if(list1[lindex].type == readsym)
@@ -503,6 +500,7 @@ void STATEMENT(lexeme *list1)
 	}
 	else if(list1[lindex].type == callsym)
 	{
+		lindex++;
 		int symIdx = findsymbol(list1[lindex].name,3);
 
 		lindex++;
