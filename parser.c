@@ -14,6 +14,7 @@ symbol *table;
 int tIndex;
 int level;
 int lindex = 0;
+int regcounter = -1;
 
 void emit(int opname, int level, int mvalue);
 void addToSymbolTable(int k, char n[], int v, int l, int a, int m);
@@ -52,10 +53,8 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 		emit(9,0,3);
 
 		if(list[lindex].type != periodsym)
-        {
-            printf("Parser Error: Program must be closed by a period\n");
-            exit(1);
-        }
+            printparseerror(1);
+        
 
 		for(i =0;i<cIndex;i++)
 			if(code[i].opcode == 5)
@@ -213,6 +212,7 @@ void printparseerror(int err_code)
 
 	free(code);
 	free(table);
+	exit(1);
 }
 
 void printsymboltable()
@@ -358,6 +358,10 @@ void CONST_DECLARATION(lexeme *list)
 			// if it is a identifier
 			if (list[lindex].type == identsym)
 			{
+				int mdc = multipledeclarationcheck(list[lindex].name);
+				if(mdc != -1)
+					printparseerror(18);
+
 				lindex++;
 				if (list[lindex].type == assignsym)
 				{
@@ -367,12 +371,26 @@ void CONST_DECLARATION(lexeme *list)
 						addToSymbolTable(1,list[lindex - 2].name,list[lindex].value,level,0,0);
 						lindex++;
 					}
+					else
+						printparseerror(2);
 				}
+				else
+					printparseerror(2);
 			}
+			else
+				printparseerror(2);
 		} while(list[lindex].type == commasym);
 		
 		if (list[lindex].type == semicolonsym)
 			lindex++;
+		else
+		{
+			if(list[lindex].type == identsym)
+				printparseerror(13);
+			else
+				printparseerror(14);
+		}
+			
 	}
 
 }
@@ -387,13 +405,26 @@ int VAR_DECLARATION(lexeme *list)
 			lindex++;
 			if(list[lindex].type == identsym)
 			{
+				int mdc = multipledeclarationcheck(list[lindex].name);
+				if(mdc != -1)
+					printparseerror(18);
+
 				addToSymbolTable(2,list[lindex].name,0,level,retval+3,0);
 				lindex++;
 				retval++;
 			}
+			else
+				printparseerror(3);
 		} while(list[lindex].type == commasym);
 		if (list[lindex].type == semicolonsym)
 			lindex++;
+		else
+		{
+			if(list[lindex].type == identsym)
+				printparseerror(13);
+			else
+				printparseerror(14);
+		}
 	}
 	return retval;
 }
@@ -405,6 +436,10 @@ void PROCEDURE_DECLARATION(lexeme *list)
 		lindex++;
 		if(list[lindex].type == identsym)
 		{
+			int mdc = multipledeclarationcheck(list[lindex].name);
+			if(mdc != -1)
+				printparseerror(18);
+
 			lindex++;
 			if(list[lindex].type == semicolonsym)
 			{
@@ -416,8 +451,14 @@ void PROCEDURE_DECLARATION(lexeme *list)
 					lindex++;
 					emit(2,0,0);
 				}
+				else
+					printparseerror(14);
 			}
+			else
+				printparseerror(4);
 		}
+		else
+			printparseerror(4);
 	}
 }
 void STATEMENT(lexeme *list)
@@ -437,6 +478,15 @@ void STATEMENT(lexeme *list)
 				expression(list);
 				emit(4,level-table[symIdx].level,table[symIdx].addr);
 			}
+			else
+				printparseerror(5);
+		}
+		else
+		{
+			if(findsymbol(list[lindex].name,1) != findsymbol(list[lindex].name,3))
+				printparseerror(6);
+			else
+				printparseerror(19);
 		}
 	}
 	// begin-end statement
@@ -450,6 +500,13 @@ void STATEMENT(lexeme *list)
 		
 		if (list[lindex].type == endsym)
 			lindex++;
+		else
+		{
+			if(list[lindex].type == identsym || list[lindex].type == readsym || list[lindex].type == writesym || list[lindex].type == beginsym || list[lindex].type == callsym || list[lindex].type == ifsym || list[lindex].type == whilesym)
+				printparseerror(15);
+			else
+				printparseerror(16);
+		}
 	}
 	// if statement
 	else if(list[lindex].type == ifsym)
@@ -474,6 +531,8 @@ void STATEMENT(lexeme *list)
 			else
 				code[jpcIdx].m = cIndex;
 		}
+		else
+			printparseerror(8);
 	}
 	// while-do statement
 	else if(list[lindex].type == whilesym)
@@ -491,11 +550,17 @@ void STATEMENT(lexeme *list)
 			emit(7,0,loopIdx);
 			code[jpcIdx].m = cIndex;
 		}
+		else
+			printparseerror(9);
 	}
 	// read statement
 	else if(list[lindex].type == readsym)
 	{
 		lindex++;
+
+		if(list[lindex].type != identsym)
+			printparseerror(6);
+
 		symIdx = findsymbol(list[lindex].name,2);
 		
 		if (symIdx != -1)
@@ -503,6 +568,13 @@ void STATEMENT(lexeme *list)
 			lindex++;
 			emit(9,0,2);
 			emit(4,level-table[symIdx].level,table[symIdx].addr);
+		}
+		else
+		{
+			if(findsymbol(list[lindex].name,1) != findsymbol(list[lindex].name,3))
+				printparseerror(6);
+			else
+				printparseerror(19);
 		}
 	}
 	// write statement
@@ -525,7 +597,18 @@ void STATEMENT(lexeme *list)
 				lindex++;
 				emit(5,level-table[symIdx].level,symIdx);
 			}
+			else
+			{
+				if(findsymbol(list[lindex].name,1) != findsymbol(list[lindex].name,2))
+				{
+					printparseerror(7);
+				}
+				else
+					printparseerror(19);
+			}
 		}
+		else
+			printparseerror(7);
 	}
 }
 
@@ -569,6 +652,8 @@ void condition(lexeme *list)
 		expression(list);
 		emit(2,0,11);
 	}
+	else
+		printparseerror(10);
 }
 
 void expression(lexeme *list)
@@ -616,6 +701,9 @@ void expression(lexeme *list)
 		}
 
 	}
+
+	if(list[lindex].type == plussym || list[lindex].type == minussym || list[lindex].type == multsym || list[lindex].type == divsym || list[lindex].type == lparensym || list[lindex].type == identsym || list[lindex].type == numbersym)
+		printparseerror(17);
 }
 
 void term(lexeme *list)
@@ -646,16 +734,33 @@ void factor(lexeme *list)
 		symIdx_var = findsymbol(list[lindex].name,2);
 		symIdx_const = findsymbol(list[lindex].name,1);
 
+		if(symIdx_const == -1 && symIdx_var == -1)
+		{
+			if(findsymbol(list[lindex].name,3) != -1)
+				printparseerror(11);
+			else
+				printparseerror(19);
+		}
+		
+
 		if(symIdx_var == -1 || table[symIdx_var].level < table[symIdx_const].level)
+		{
 			emit(1,0,table[symIdx_const].val);
+			regcounter++;
+		}
 		else 
+		{
 			emit(3,level-table[symIdx_var].level,table[symIdx_var].addr);
+			regcounter++;
+		}
+			
 		lindex++;
 	}
 	else if(list[lindex].type == numbersym)
 	{
 		emit(1,0,list[lindex].value);
 		lindex++;
+		regcounter++;
 	}
 	else if(list[lindex].type == lparensym)
 	{
@@ -663,6 +768,10 @@ void factor(lexeme *list)
 		expression(list);
 		if (list[lindex].type == rparensym)
 			lindex++;
+		else
+			printparseerror(12);
 	}
+	else
+		printparseerror(11);
 
 }
