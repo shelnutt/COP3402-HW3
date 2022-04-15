@@ -212,7 +212,7 @@ void printparseerror(int err_code)
 
 	free(code);
 	free(table);
-	exit(1);
+	exit(0);
 }
 
 void printsymboltable()
@@ -477,6 +477,7 @@ void STATEMENT(lexeme *list)
 				lindex++;
 				expression(list);
 				emit(4,level-table[symIdx].level,table[symIdx].addr);
+				regcounter--;
 			}
 			else
 				printparseerror(5);
@@ -515,6 +516,7 @@ void STATEMENT(lexeme *list)
 		condition(list);
 		jpcIdx = cIndex;
 		emit(8,0,0);
+		regcounter--;
 		if (list[lindex].type == thensym)
 		{
 			lindex++;
@@ -546,6 +548,7 @@ void STATEMENT(lexeme *list)
 			lindex++;
 			jpcIdx = cIndex;
 			emit(8,0,0);
+			regcounter--;
 			STATEMENT(list);
 			emit(7,0,loopIdx);
 			code[jpcIdx].m = cIndex;
@@ -566,7 +569,10 @@ void STATEMENT(lexeme *list)
 		if (symIdx != -1)
 		{
 			lindex++;
-			emit(9,0,2);
+			if(regcounter < MAX_REG_HEIGHT)
+				emit(9,0,2);
+			else
+				printparseerror(20);
 			emit(4,level-table[symIdx].level,table[symIdx].addr);
 		}
 		else
@@ -621,36 +627,42 @@ void condition(lexeme *list)
 		lindex++;
 		expression(list);
 		emit(2,0,6);
+		regcounter--;
 	}
 	else if(list[lindex].type == neqsym)
 	{
 		lindex++;
 		expression(list);
 		emit(2,0,7);
+		regcounter--;
 	}
 	else if(list[lindex].type == lsssym)
 	{
 		lindex++;
 		expression(list);
 		emit(2,0,8);
+		regcounter--;
 	}
 	else if(list[lindex].type == leqsym)
 	{
 		lindex++;
 		expression(list);
 		emit(2,0,9);
+		regcounter--;
 	}
 	else if(list[lindex].type ==  gtrsym)
 	{
 		lindex++;
 		expression(list);
 		emit(2,0,10);
+		regcounter--;
 	}
 	else if(list[lindex].type == geqsym)
 	{
 		lindex++;
 		expression(list);
 		emit(2,0,11);
+		regcounter--;
 	}
 	else
 		printparseerror(10);
@@ -670,12 +682,14 @@ void expression(lexeme *list)
 				lindex++;
 				term(list);
 				emit(2,0,2);
+				regcounter--;
 			}
 			else
 			{
 				lindex++;
 				term(list);
 				emit(2,0,3);
+				regcounter--;
 			}
 		}
 	}
@@ -691,12 +705,14 @@ void expression(lexeme *list)
 				lindex++;
 				term(list);
 				emit(2,0,2);
+				regcounter--;
 			}
 			else
 			{
 				lindex++;
 				term(list);
 				emit(2,0,3);
+				regcounter--;
 			}
 		}
 
@@ -716,12 +732,14 @@ void term(lexeme *list)
 			lindex++;
 			factor(list);
 			emit(2,0,4);
+			regcounter--;
 		}
 		else
 		{
 			lindex++;
 			factor(list);
 			emit(2,0,5);
+			regcounter--;
 		}
 	}
 }
@@ -745,22 +763,38 @@ void factor(lexeme *list)
 
 		if(symIdx_var == -1 || table[symIdx_var].level < table[symIdx_const].level)
 		{
-			emit(1,0,table[symIdx_const].val);
-			regcounter++;
+			if(regcounter < MAX_REG_HEIGHT)
+			{
+				emit(1,0,table[symIdx_const].val);
+				regcounter++;
+			}
+			else
+				printparseerror(20);
 		}
 		else 
 		{
-			emit(3,level-table[symIdx_var].level,table[symIdx_var].addr);
-			regcounter++;
+			if(regcounter < MAX_REG_HEIGHT)
+			{
+				emit(3,level-table[symIdx_var].level,table[symIdx_var].addr);
+				regcounter++;
+			}
+			else
+				printparseerror(20);
 		}
 			
 		lindex++;
 	}
 	else if(list[lindex].type == numbersym)
 	{
-		emit(1,0,list[lindex].value);
-		lindex++;
-		regcounter++;
+		if(regcounter < MAX_REG_HEIGHT)
+		{
+			emit(1,0,list[lindex].value);
+			lindex++;
+			regcounter++;
+		}
+		else
+			printparseerror(20);
+		
 	}
 	else if(list[lindex].type == lparensym)
 	{
